@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-// git test
 enum piece_colour { white, black };
 enum piece_type { empty, pawn, knight, bishop, rook, queen, king };
 struct piece {
@@ -10,6 +9,12 @@ struct piece {
   std::vector<int> direction;
 };
 
+piece createEmpty(){
+  piece init;
+  init.type = empty;
+  init.icon="•";
+  return init;
+}
 piece createPawn(piece_colour colour) {
   piece init;
   init.type = pawn;
@@ -22,4 +27,7 @@ piece createPawn(piece_colour colour) {
 
 std::vector<piece> board(64, createPawn(white));
 
-int main() { std::cout << board[40].type; }
+int main() {
+   piece no = createEmpty();
+   std::cout<<"•";
+}

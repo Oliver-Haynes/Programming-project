@@ -1,11 +1,12 @@
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
 enum piece_colour { white, black };
 enum piece_type { empty, pawn, knight, bishop, rook, queen, king };
-struct move{
-int startSquare;
-int targetSquare;
+struct move {
+  int startSquare;
+  int targetSquare;
 };
 struct piece { // provides a template for the pieces
   piece_type type;
@@ -118,23 +119,58 @@ void printBoard() {
       j = 0;
     }
   }
+  if (turn == white) {
+    std::cout << "white to move" << std::endl;
+  }
+  if (turn == black) {
+    std::cout << "black to move" << std::endl;
+  }
 }
-void pieceMove(int start, int end) {
-  int diff = abs(start - end);
-  bool pseudolegal = false;
-  for (int i : board[start].direction) {
-    if (diff % i == 0) {
-      pseudolegal = true;
+
+std::vector<move> moves;
+std::vector<move> rookMoves(int square) {
+  std::vector<move> rookMoves;
+  move move;
+  move.startSquare = square;
+  // check to right of piece
+  for (int i = square; (i + 1) % 8 != 0; i++) {
+    if (board[i].type == empty) {
+      move.targetSquare = i;
+      rookMoves.push_back(move);
+    }
+    if (board[i].colour != board[square].colour) {
+      move.targetSquare = i;
+      move.targetSquare = i;
+      rookMoves.push_back(move);
     }
   }
-  if (pseudolegal && board[start].colour == turn) {
-    turn = (turn == white) ? black : white;
-    board[end] = board[start];
-    board[start] = createEmpty();
-  } else {
-    std::cout << "Illegal move" << std::endl;
+  for (int i = square; i % 8 == 0; i--) {
+    if (board[i].type == empty) {
+      move.targetSquare = i;
+      rookMoves.push_back(move);
+    }
+    if (board[i].colour != board[square].colour) {
+      move.targetSquare = i;
+      move.targetSquare = i;
+      rookMoves.push_back(move);
+    }
   }
+
+  return rookMoves;
 }
+std::vector<move> generateMoves() {
+  std::vector<move> legalMoves;
+  for (int i = 0; i < 64; i++) {
+    switch (board[i].type) {
+    case rook:
+      rookMoves(i).insert(rookMoves(i).begin(), legalMoves.begin(),
+                          legalMoves.end());
+      break;
+    }
+  }
+  return legalMoves;
+}
+
 int toCoord(std::string ord) {
   int coord;
   int num = stoi(ord.substr(1, 1));
@@ -172,11 +208,18 @@ int main() {
   parseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
   std::string x, y;
   while (true) {
+    moves = generateMoves();
     printBoard();
     std::cout << "enter start coordinate" << std::endl;
     std::cin >> x;
     std::cout << "enter target coordinate" << std::endl;
     std::cin >> y;
-    pieceMove(toCoord(x), toCoord(y));
+    move attempt;
+    attempt.startSquare = toCoord(x);
+    attempt.targetSquare = toCoord(y);
+    if (std::count(moves.begin(), moves.end(), attempt)) {
+      board[attempt.targetSquare] = board[attempt.startSquare];
+      board[attempt.startSquare] = createEmpty();
+    }
   }
 }
